@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusForge Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root{
+--bg:#0f172a;
+--card:#1e293b;
+--card2:#334155;
+--text:#ffffff;
+--accent:#3b82f6;
+--success:#22c55e;
+--danger:#ef4444;
+--warning:#f59e0b;
+}
+
+body.light{
+--bg:#f1f5f9;
+--card:#ffffff;
+--card2:#e2e8f0;
+--text:#111827;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Inter,Segoe UI,sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,var(--bg),#0b1220);
+color:var(--text);
+padding:20px;
+transition:.3s;
+min-height:100vh;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+nav h1{
+font-size:2rem;
+}
+
+.top-buttons{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.card{
+background:var(--card);
+padding:20px;
+border-radius:20px;
+box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:15px;
+margin-bottom:20px;
+}
+
+.stat{
+text-align:center;
+background:var(--card);
+padding:20px;
+border-radius:20px;
+}
+
+.stat h2{
+font-size:2rem;
+margin-bottom:5px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+@media(max-width:900px){
+.grid{
+grid-template-columns:1fr;
+}
+}
+
+.timer-box{
+text-align:center;
+}
+
+.progress-ring{
+width:250px;
+height:250px;
+border-radius:50%;
+background:conic-gradient(var(--accent) 0deg,#1f2937 0deg);
+display:flex;
+justify-content:center;
+align-items:center;
+margin:20px auto;
+transition:.3s;
+}
+
+.inner-ring{
+width:210px;
+height:210px;
+background:var(--bg);
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+}
+
+#timer{
+font-size:3.5rem;
+font-weight:800;
+}
+
+.controls{
+margin-top:15px;
+}
+
+button{
+border:none;
+padding:12px 16px;
+border-radius:12px;
+cursor:pointer;
+font-weight:600;
+}
+
+.primary{
+background:var(--accent);
+color:white;
+}
+
+.success{
+background:var(--success);
+color:white;
+}
+
+.warning{
+background:var(--warning);
+color:white;
+}
+
+.danger{
+background:var(--danger);
+color:white;
+}
+
+.mode-btn{
+background:var(--card2);
+color:var(--text);
+margin:4px;
+}
+
+input{
+width:100%;
+padding:12px;
+border:none;
+background:var(--card2);
+color:var(--text);
+border-radius:12px;
+margin-bottom:10px;
+}
+
+ul{
+list-style:none;
+}
+
+li{
+background:var(--card2);
+margin:8px 0;
+padding:12px;
+border-radius:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.completed{
+text-decoration:line-through;
+opacity:.6;
+}
+
+.task-actions{
+display:flex;
+gap:5px;
+}
+
+.quote{
+text-align:center;
+margin-top:15px;
+font-style:italic;
+opacity:.9;
+}
+
+.levelbar{
+height:12px;
+background:#1f2937;
+border-radius:20px;
+overflow:hidden;
+margin-top:10px;
+}
+
+.levelfill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+transition:.3s;
+}
+
+canvas{
+background:white;
+padding:10px;
+border-radius:12px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<nav>
+<h1>📚 FocusForge Pro</h1>
+
+<div class="top-buttons">
+<button class="primary" onclick="toggleTheme()">🌗 Theme</button>
+<button class="warning" onclick="toggleFullscreen()">🚀 Lock-In</button>
+</div>
+</nav>
+
+<div class="stats">
+
+<div class="stat">
+<h2 id="sessions">0</h2>
+<p>Sessions</p>
+</div>
+
+<div class="stat">
+<h2 id="streak">0</h2>
+<p>🔥 Streak</p>
+</div>
+
+<div class="stat">
+<h2 id="xp">0</h2>
+<p>XP</p>
+</div>
+
+<div class="stat">
+<h2 id="level">1</h2>
+<p>Level</p>
+<div class="levelbar">
+<div id="levelFill" class="levelfill"></div>
+</div>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+
+<div class="timer-box">
+
+<h2>⏱ Focus Timer</h2>
+
+<div>
+<button class="mode-btn" onclick="setMode(25)">25 Min</button>
+<button class="mode-btn" onclick="setMode(50)">50 Min</button>
+<button class="mode-btn" onclick="setMode(5)">Break</button>
+</div>
+
+<div class="progress-ring" id="ring">
+<div class="inner-ring">
+<div id="timer">25:00</div>
+<small id="modeText">Study Session</small>
+</div>
+</div>
+
+<div class="controls">
+<button class="success" onclick="startTimer()">Start</button>
+<button class="warning" onclick="pauseTimer()">Pause</button>
+<button class="danger" onclick="resetTimer()">Reset</button>
+</div>
+
+<div class="quote" id="quote">
+Discipline beats motivation.
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>✅ Tasks</h2>
+
+<input id="taskInput" placeholder="Add a task...">
+
+<button class="success" onclick="addTask()">Add Task</button>
+
+<ul id="taskList"></ul>
+
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+<h2>📊 Weekly Productivity</h2>
+<canvas id="chart"></canvas>
+</div>
+
+</div>
+
+<script>
+
+/* =========================
+THEME
+========================= */
+
+if(localStorage.getItem("theme")==="light"){
+document.body.classList.add("light");
+}
+
+function toggleTheme(){
+
+document.body.classList.toggle("light");
+
+localStorage.setItem(
+"theme",
+document.body.classList.contains("light")
+? "light"
+: "dark"
+);
+
+}
+
+/* =========================
+STORAGE
+========================= */
+
+function save(key,value){
+localStorage.setItem(
+key,
+JSON.stringify(value)
+);
+}
+
+function load(key,def){
+const d=localStorage.getItem(key);
+return d ? JSON.parse(d) : def;
+}
+
+/* =========================
+DATA
+========================= */
+
+let sessions = load("sessions",0);
+let xp = load("xp",0);
+let streak = load("streak",0);
+
+let tasks = load("tasks",[]);
+
+let weekly =
+load(
+"weekly",
+[0,0,0,0,0,0,0]
+);
+
+/* =========================
+UI
+========================= */
+
+function updateDashboard(){
+
+document.getElementById("sessions").textContent=sessions;
+document.getElementById("xp").textContent=xp;
+
+const level=
+Math.floor(xp/500)+1;
+
+document.getElementById("level").textContent=level;
+
+const progress=
+(xp%500)/500*100;
+
+document.getElementById("levelFill").style.width=
+progress+"%";
+
+document.getElementById("streak").textContent=streak;
+
+}
+
+updateDashboard();
+
+/* =========================
+STREAK
+========================= */
+
+function updateStreak(){
+
+const today=new Date();
+const todayString=today.toDateString();
+
+const lastStudy=
+localStorage.getItem("lastStudy");
+
+if(!lastStudy){
+
+streak = 1;
+
+}else{
+
+const diff=Math.floor(
+(today-new Date(lastStudy))
+/
+(1000*60*60*24)
+);
+
+if(diff===0){
+return;
+}
+else if(diff===1){
+streak++;
+}
+else{
+streak=1;
+}
+
+}
+
+localStorage.setItem(
+"lastStudy",
+todayString
+);
+
+save("streak",streak);
+
+updateDashboard();
+
+}
+
+/* =========================
+TASKS
+========================= */
+
+function renderTasks(){
+
+const list=
+document.getElementById("taskList");
+
+list.innerHTML="";
+
+tasks.forEach((task,index)=>{
+
+const li=document.createElement("li");
+
+li.innerHTML=`
+<span class="${task.done?'completed':''}">
+${task.text}
+</span>
+
+<div class="task-actions">
+
+<button onclick="toggleTask(${index})">
+✓
+</button>
+
+<button onclick="deleteTask(${index})">
+🗑
+</button>
+
+</div>
+`;
+
+list.appendChild(li);
+
+});
+
+}
+
+function addTask(){
+
+const input=
+document.getElementById("taskInput");
+
+const text=
+input.value.trim();
+
+if(!text) return;
+
+tasks.push({
+text:text,
+done:false
+});
+
+save("tasks",tasks);
+
+input.value="";
+
+renderTasks();
+
+}
+
+function toggleTask(index){
+
+tasks[index].done=
+!tasks[index].done;
+
+save("tasks",tasks);
+
+renderTasks();
+
+}
+
+function deleteTask(index){
+
+tasks.splice(index,1);
+
+save("tasks",tasks);
+
+renderTasks();
+
+}
+
+renderTasks();
+
+/* =========================
+XP
+========================= */
+
+function gainXP(amount){
+
+xp+=amount;
+
+save("xp",xp);
+
+updateDashboard();
+
+}
+
+/* =========================
+ACHIEVEMENTS
+========================= */
+
+function checkAchievements(){
+
+if(sessions===1){
+alert("🏆 Achievement: First Session");
+}
+
+if(streak===7){
+alert("🔥 Achievement: 7 Day Streak");
+}
+
+if(xp>=5000){
+alert("👑 Achievement: Study Master");
+}
+
+}
+
+/* =========================
+TIMER
+========================= */
+
+let duration=25*60;
+let timeLeft=duration;
+let timer=null;
+let isRunning=false;
+
+function updateTimer(){
+
+const mins=
+Math.floor(timeLeft/60);
+
+const secs=
+timeLeft%60;
+
+document.getElementById("timer").textContent=
+`${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+
+const progress=
+((duration-timeLeft)/duration)*360;
+
+document.getElementById("ring").style.background=
+`conic-gradient(#3b82f6 ${progress}deg,#1f2937 0deg)`;
+
+}
+
+function startTimer(){
+
+if(isRunning) return;
+
+isRunning=true;
+
+timer=setInterval(()=>{
+
+timeLeft--;
+
+updateTimer();
+
+if(timeLeft<=0){
+
+clearInterval(timer);
+
+isRunning=false;
+
+sessionCompleted();
+
+}
+
+},1000);
+
+}
+
+function pauseTimer(){
+
+clearInterval(timer);
+
+isRunning=false;
+
+}
+
+function resetTimer(){
+
+clearInterval(timer);
+
+isRunning=false;
+
+timeLeft=duration;
+
+updateTimer();
+
+}
+
+function setMode(minutes){
+
+pauseTimer();
+
+duration=minutes*60;
+timeLeft=duration;
+
+document.getElementById("modeText")
+.textContent=
+minutes===5
+? "Break Time"
+: `${minutes} Minute Focus`;
+
+updateTimer();
+
+}
+
+/* =========================
+SESSION COMPLETE
+========================= */
+
+function sessionCompleted(){
+
+sessions++;
+
+save("sessions",sessions);
+
+gainXP(100);
+
+updateStreak();
+
+const day=
+new Date().getDay();
+
+weekly[day]+=25;
+
+save("weekly",weekly);
+
+chart.data.datasets[0].data=weekly;
+chart.update();
+
+checkAchievements();
+
+updateDashboard();
+
+alert("🔥 Session Completed!");
+
+resetTimer();
+
+}
+
+/* =========================
+FULLSCREEN
+========================= */
+
+function toggleFullscreen(){
+
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen();
+}else{
+document.exitFullscreen();
+}
+
+}
+
+/* =========================
+QUOTES
+========================= */
+
+const quotes=[
+"Nobody is coming. Study.",
+"Discipline beats motivation.",
+"Future you is watching.",
+"Success is built session by session.",
+"Stay focused. Stay dangerous.",
+"One more hour can change everything."
+];
+
+setInterval(()=>{
+
+document.getElementById("quote").innerText=
+quotes[
+Math.floor(
+Math.random()*quotes.length
+)
+];
+
+},10000);
+
+/* =========================
+CHART
+========================= */
+
+const chart=
+new Chart(
+document.getElementById("chart"),
+{
+type:"bar",
+data:{
+labels:[
+"Sun","Mon","Tue",
+"Wed","Thu","Fri","Sat"
+],
+datasets:[{
+label:"Study Minutes",
+data:weekly,
+backgroundColor:"#3b82f6"
+}]
+},
+options:{
+responsive:true
+}
+}
+);
+
+updateTimer();
+
+</script>
+
+</body>
+</html>
