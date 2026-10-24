@@ -1,1 +1,1 @@
-# forge-stugy
+# forge-study
